@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html>
-<style>
-h1 {text-align: center;}
-</style>
+
+style
+    include style.css
+
 </head>
 <body>
 
 <h1> Blogs </h1>
+<div id="CreateBlog" class=#{username}><a href="/newBlog">Create New Blog -- #{username} </a></div> 
+<div id="PendingBlog" class=#{username}><a href="/pendingBlogs">Waiting for approval -- #{username} </a></div> 
 <hr>
 <div>
 <h2 class="title">Title</h2>
