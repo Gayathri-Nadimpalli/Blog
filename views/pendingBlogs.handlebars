@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Example App - Home</title>
+</head>
+<body>
+ 
+    <!-- Uses built-in `if` helper. -->
+  {{#if showTitle}}
+    <h1>Blogs</h1>
+  {{/if}}
+ 
+    <!-- Calls `foo` helper, overridden at render-level. -->
+    {{foo}}
+  <h1>Pending Blogs</h1>  
+  <div> 
+    
+    {{#each blogs}}
+      
+        <form action="/approve" method="POST">
+            <input type="hidden" id="blogID" name="blogID" value={{this._id}}>
+            <input type="hidden" id="title" name="title" value={{this.title}}>
+            <input type="hidden" id="body" name="body" value={{this.body}}>
+            <input type="hidden" id="approved" name="approved" value="Y">
+
+            <h3><text id="title" name="title">{{this.title}}</text></h3>
+            <text id="body" name="body" cols="50" rows="10">{{this.body}}</text><br><br>
+            <button type="submit"> Approve</button><br><br>
+        </form>
+      
+    {{/each}}
+  </div>
+ 
+</body>
+</html>

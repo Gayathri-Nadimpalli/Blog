@@ -11,6 +11,7 @@ const Blog = require('./models/blogModel');
 const User = require("./models/userModel"); 
 const { urlencoded } = require('express');
 const { promises } = require('fs');
+var exphbs  = require('express-handlebars');
 
 const blogRouter = require('./routes/blogRouter')(Blog, User);
 
@@ -19,19 +20,21 @@ app.use(bodyParser.json());
 
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "views"));
-
+ 
+app.engine('handlebars', exphbs());
+app.set('view engine', 'handlebars'); 
 // blogRoutes
 
-app.use('/',blogRouter);
+app.use('/',blogRouter); 
  
 // Showing home page 
-app.get("/", function (req, res) { 
+app.get("/", function (req, res) {  
     res.render("home"); 
-}); 
+});  
 
 // Showing register form 
 app.get("/register", function (req, res) { 
-    res.render("register"); 
+    res.render("register");  
 });
 
 // Showing login form 

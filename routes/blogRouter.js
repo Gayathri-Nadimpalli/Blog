@@ -1,24 +1,11 @@
 const { query } = require('express');
 const express = require('express');
 const bcrypt = require("bcryptjs");
+const { countDocuments } = require('../models/blogModel');
 
 function routes(Blog, User) {
 
   const blogRouter = express.Router();
-
-  blogRouter.route('/test')
-    .get((req, res) => {
-        let promise = new Promise(function(resolve, reject) {
-            User.findOne({}, (err, user) => {
-                if (err) {
-                    reject(err);
-                }
-                resolve(user);
-            });
-        });
-        promise.then((result) => { res.send(result)} );
-        
-    });
 
   blogRouter.route('/blogs')
     .post((req, res) => {  
@@ -26,7 +13,14 @@ function routes(Blog, User) {
       console.log(req.body);
       const blog = new Blog(req.body);
       blog.save();
-      return res.render("index"); //res.status(201).json(blog);
+      //return res.render("index"); //res.status(201).json(blog);
+      let showUser = true;
+
+      Blog.find({approved:"N"}, {title :1, body : 1}).lean().exec(function (err, data) {
+        res.render("blogs", {blogs: data,
+            showUser  : showUser,
+            showAdmin : !showUser});
+        });
     })
     .get((req,res) => {
       Blog.find((err, blogs) => {
@@ -38,13 +32,7 @@ function routes(Blog, User) {
         //res.render("index"); 
       }); 
     })
-    .delete((req,res) => {
-      Blog.remove((err) => {
-        return res.send(err);
-      })
-      return res.sendStatus(204);    
-    });  
-    
+
   blogRouter.route('/blogs/:username')
     .get((req, res) => {
       let query = {}
@@ -64,7 +52,27 @@ function routes(Blog, User) {
       });
     });
 
-    blogRouter.route('/register')
+blogRouter.route('/approve')
+    .get((req, res) => {
+        console.log(req.body.title); 
+        res.send('123');
+    })
+    .post((req, res) => {
+        console.log(req.body);
+        Blog.findOne({_id : req.body.blogID}, (err, blog) => {
+            if(err) {
+                return res.send(err);
+            } else {
+                blog.approved = "Y";
+                console.log(blog);
+                blog.save();
+            }
+        });
+        res.redirect('back');
+
+    }); 
+
+blogRouter.route('/register')
     .post((req,res) => {
       User.countDocuments({ username: req.body.username },(err, count) => {
           if (err) { 
@@ -94,8 +102,15 @@ blogRouter.route('/loginDetails')
         }); 
     }); 
 
+blogRouter.route('/pendingBlogs')
+  .get((req, res) => {
+    Blog.find({approved:"N"}).lean().exec(function (err, data) {
+        res.render("pendingBlogs", {blogs: data});
+      });
+  });
+
 blogRouter.route('/login')
-.post((req, res) => {
+  .post((req, res) => {
 
     let promise = new Promise(function(resolve, reject) {
         let user = User.findOne({username: req.body.username}, {password : 1}, (err, user) => {
@@ -115,18 +130,22 @@ blogRouter.route('/login')
         }
         else
         {
+            // comparing with encrypted password
             console.log('req.body.password',req.body.password);
             console.log('result.password', result.password);
             if (bcrypt.compareSync(req.body.password, result.password))
             {
-                Blog.find({}, (err, blogs) => {  
+                let showUser = true;
 
-                    if (err) {  
-                      return res.send(err);
-                    }
-                    //return res.json(blogs);
-                    return res.render("index",{username : req.body.username});
+                if (req.body.username == 'admin') {
+                    showUser = false;
+                } 
+                Blog.find({approved:"Y"}, {title :1, body : 1}).lean().exec(function (err, data) {
+                    res.render("blogs", {blogs: data,
+                         showUser  : showUser,
+                         showAdmin : !showUser});
                   });
+                
             } else
             {
                 return res.send("Bad request. Password don't match ");
